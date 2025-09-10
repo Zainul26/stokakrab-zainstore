@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zain Store • Cek Stok XL Akrab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+    .glass { background: rgba(255,255,255,.75); backdrop-filter: blur(8px); }
+    .chip  { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium; }
+    .mono  { font-variant-numeric: tabular-nums; }
+    .watermark{
+      position: fixed; right: 12px; bottom: 12px; z-index: 50;
+      background: linear-gradient(135deg,#8b5cf6,#3b82f6);
+      color:#fff; padding:8px 12px; border-radius:9999px; font-size:12px;
+      box-shadow:0 8px 24px rgba(59,130,246,.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50">
+
+  <!-- Header -->
+  <header class="w-full border-b border-indigo-100 bg-gradient-to-r from-indigo-600 via-fuchsia-500 to-sky-500 text-white">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-white/15 grid place-items-center font-bold">ZS</div>
+        <div>
+          <div class="text-lg font-semibold">Zain Store</div>
+          <div class="text-xs opacity-90 -mt-0.5">Cek Stok XL Akrab</div>
+        </div>
+      </div>
+      <button class="hidden lg:inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition"
+              onclick="location.reload()">
+        ↻ Refresh halaman
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-4xl mx-auto px-4 py-6">
+    <div class="glass rounded-2xl shadow-xl p-6 border border-white/60">
+      <h1 class="text-xl font-semibold text-indigo-700">📦 Cek Stok XL Akrab</h1>
+
+      <!-- Info -->
+      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3">
+          <b>akrab bekasan, restok tiap hari jam 15.00 WIB</b>
+        </div>
+        <div class="bg-cyan-100 border border-cyan-200 text-cyan-900 rounded-xl p-3">
+          <b>Gunakan kode untuk transaksi di Bot WA/Telegram.<br>
+          Contoh: <span class="bg-slate-900 text-white rounded px-2 py-0.5">BPAL3.0878787878</span></b>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="mt-4 flex flex-col sm:flex-row gap-2">
+        <!-- Tombol memanggil API -->
+        <button id="btnFetch" onclick="fetchStock()"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition">
+          🔍 Cek Stok
+        </button>
+
+        <input id="q" type="text" placeholder="Cari kode/nama (mis. BPAL3 / XL)…"
+          class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm" oninput="renderFiltered()" />
+      </div>
+
+      <!-- Status -->
+      <div id="status" class="mt-3 text-sm text-slate-600"></div>
+      <div id="err" class="mt-3 hidden bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 text-sm"></div>
+
+      <!-- Raw (persis dari server) -->
+      <details id="rawWrap" class="mt-4 hidden">
+        <summary class="cursor-pointer text-sm text-slate-600 hover:text-slate-800">Tampilkan raw dari server</summary>
+        <pre id="raw" class="mt-2 whitespace-pre-wrap bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-sm"></pre>
+      </details>
+
+      <!-- Daftar terstruktur -->
+      <div id="list" class="mt-4 hidden">
+        <div class="flex items-center justify-between mb-2">
+          <div class="chip bg-indigo-100 text-indigo-700 border border-indigo-200">
+            <span id="count">0</span>&nbsp; item
+          </div>
+          <div id="updated" class="text-xs text-slate-500"></div>
+        </div>
+        <div id="rows" class="mono grid gap-1"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="watermark">Zain Store — Owner: 081252162402</div>
+
+  <script>
+    // ==========================
+    // KONFIG: Endpoint stok API
+    // ==========================
+    const STOCK_URL = 'https://xlstock.serversaya.site/api/api-xl-v7/cek_stock_akrab';
+
+    // state
+    let stockData = []; // [{sku,name,stock}]
+
+    // --------------------------
+    // PEMANGGILAN API: fetchStock
+    // --------------------------
+    async function fetchStock() {
+      const status = document.getElementById('status');
+      const err    = document.getElementById('err');
+      const raw    = document.getElementById('raw');
+      const rawWrap= document.getElementById('rawWrap');
+      const list   = document.getElementById('list');
+      const rows   = document.getElementById('rows');
+      const count  = document.getElementById('count');
+      const updated= document.getElementById('updated');
+
+      // reset
+      err.classList.add('hidden');
+      list.classList.add('hidden');
+      rawWrap.classList.add('hidden');
+      rows.innerHTML = '';
+      count.textContent = '0';
+      status.textContent = '🔄 Mengambil data…';
+
+      try {
+        // >>> INI BARIS PENTING: pemanggilan API
+        const res  = await fetch(STOCK_URL, { cache: 'no-store' });
+        const data = await res.json();
+
+        status.textContent = '';
+        if (!data || !data.message) {
+          err.textContent = '⚠️ Gagal memuat data stok.';
+          err.classList.remove('hidden');
+          return;
+        }
+
+        // tampilkan RAW persis dari server
+        raw.textContent = data.message;
+        rawWrap.classList.remove('hidden');
+
+        // parse ke array terstruktur
+        stockData = parseMessage(data.message);
+
+        if (stockData.length === 0) {
+          err.textContent = 'Data kosong.';
+          err.classList.remove('hidden');
+          return;
+        }
+
+        // render list & meta
+        renderFiltered();
+        list.classList.remove('hidden');
+        updated.textContent = 'Diperbarui: ' + (new Date()).toLocaleString('id-ID');
+      } catch (e) {
+        status.textContent = '';
+        err.textContent = '❌ Gagal menghubungi server.';
+        err.classList.remove('hidden');
+      }
+    }
+
+    // parse "(BPAL3) Anggota XL 3 hari : 0"
+    function parseMessage(msg) {
+      const lines = String(msg || '')
+        .split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const rx = /^\(([^)]+)\)\s*(.*?):\s*(-?\d+)\s*$/;
+      const out = [];
+      for (const line of lines) {
+        const m = line.match(rx);
+        if (!m) continue;
+        out.push({ sku: m[1].toUpperCase(), name: m[2], stock: parseInt(m[3], 10) });
+      }
+      return out;
+    }
+
+    // filter + render
+    function renderFiltered() {
+      const q = (document.getElementById('q').value || '').toLowerCase().trim();
+      let a = stockData.slice();
+      if (q) a = a.filter(x => (x.sku + ' ' + x.name).toLowerCase().includes(q));
+      a.sort((x,y)=> x.sku.localeCompare(y.sku,'en'));
+
+      document.getElementById('count').textContent = a.length.toString();
+      const rows = document.getElementById('rows');
+      rows.innerHTML = a.map(x => {
+        const badge =
+          x.stock === 0 ? '<span class="chip bg-red-100 text-red-700 border border-red-200">Habis</span>' :
+          x.stock  >  0 ? '<span class="chip bg-emerald-100 text-emerald-700 border border-emerald-200">Ready</span>' :
+                          '<span class="chip bg-slate-100 text-slate-700 border border-slate-200">-</span>';
+        return `
+          <div class="flex items-center justify-between bg-white/60 border border-slate-200 rounded-lg px-3 py-2">
+            <div class="truncate">
+              <span class="font-semibold text-indigo-700">(${x.sku})</span>
+              <span class="text-slate-700">${x.name}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              ${badge}
+              <span class="text-slate-700 font-medium w-10 text-right">${x.stock}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
