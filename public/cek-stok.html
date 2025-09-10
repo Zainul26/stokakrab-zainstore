@@ -59,3 +59,14 @@
         statusEl.textContent = "Network error / Timeout";
         out.hidden = false; out.textContent = e.message || "Failed to fetch";
       }
+    }
+
+    btn.onclick = cek;
+    copyBtn.onclick = async () => {
+      if (out.hidden || !out.textContent) return;
+      try { await navigator.clipboard.writeText(out.textContent); statusEl.textContent = "Tersalin ✅"; }
+      catch { statusEl.textContent = "Gagal menyalin"; }
+    };
+  </script>
+</body>
+</html>
