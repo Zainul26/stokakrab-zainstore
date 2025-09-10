@@ -8,14 +8,10 @@
   <style>
     :root { color-scheme: light; }
     .glass { background: rgba(255,255,255,.75); backdrop-filter: blur(8px); }
-    .chip  { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium; }
+    .chip  { display:inline-flex; align-items:center; border-radius:9999px; padding:.25rem .75rem; font-size:.75rem; font-weight:600 }
     .mono  { font-variant-numeric: tabular-nums; }
-    .watermark{
-      position: fixed; right: 12px; bottom: 12px; z-index: 50;
-      background: linear-gradient(135deg,#8b5cf6,#3b82f6);
-      color:#fff; padding:8px 12px; border-radius:9999px; font-size:12px;
-      box-shadow:0 8px 24px rgba(59,130,246,.35);
-    }
+    .watermark{ position: fixed; right: 12px; bottom: 12px; z-index: 50; background: linear-gradient(135deg,#8b5cf6,#3b82f6); color:#fff; padding:8px 12px; border-radius:9999px; font-size:12px; box-shadow:0 8px 24px rgba(59,130,246,.35);}
+    .row:hover{ box-shadow:0 8px 20px rgba(2,6,23,.06); transform: translateY(-1px);}
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50">
@@ -30,10 +26,14 @@
           <div class="text-xs opacity-90 -mt-0.5">Cek Stok XL Akrab</div>
         </div>
       </div>
-      <button class="hidden lg:inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition"
-              onclick="location.reload()">
-        ↻ Refresh halaman
-      </button>
+      <div class="hidden lg:flex items-center gap-2">
+        <button id="btnRefresh" class="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition">
+          ↻ Refresh
+        </button>
+        <label class="text-xs flex items-center gap-2 bg-white/10 px-2 py-1 rounded">
+          <input id="auto" type="checkbox" class="scale-110 accent-white" /> Auto 60s
+        </label>
+      </div>
     </div>
   </header>
 
@@ -49,23 +49,20 @@
         </div>
         <div class="bg-cyan-100 border border-cyan-200 text-cyan-900 rounded-xl p-3">
           <b>Gunakan kode untuk transaksi di Bot WA/Telegram.<br>
-          Contoh: <span class="bg-slate-900 text-white rounded px-2 py-0.5">BPAL3.0878787878</span></b>
+            Contoh: <span class="bg-slate-900 text-white rounded px-2 py-0.5">BPAL3.0878787878</span></b>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="mt-4 flex flex-col sm:flex-row gap-2">
-        <!-- Tombol memanggil API -->
-        <button id="btnFetch" onclick="fetchStock()"
-          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition">
+        <button id="btnFetch" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition">
           🔍 Cek Stok
         </button>
-
-        <input id="q" type="text" placeholder="Cari kode/nama (mis. BPAL3 / XL)…"
-          class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm" oninput="renderFiltered()" />
+        <input id="q" type="text" placeholder="Cari kode/nama (mis. BPAL3 / XL)…" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+        <button id="btnCSV" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-lg transition">⬇️ CSV</button>
       </div>
 
-      <!-- Status -->
+      <!-- Status & error -->
       <div id="status" class="mt-3 text-sm text-slate-600"></div>
       <div id="err" class="mt-3 hidden bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 text-sm"></div>
 
@@ -94,25 +91,49 @@
     // ==========================
     // KONFIG: Endpoint stok API
     // ==========================
-    const STOCK_URL = 'https://xlstock.serversaya.site/api/api-xl-v7/cek_stock_akrab';
+    // Pakai endpoint yang sama dengan bot WhatsApp agar datanya seragam.
+    // Jika host eksternal memblokir CORS, buat proxy di server Anda (lihat catatan di bawah).
+    const STOCK_URL = (window.STOCK_URL_OVERRIDE) || 'https://panel.khfy-store.com/api/api-xl-v7/cek_stock_akrab';
 
     // state
     let stockData = []; // [{sku,name,stock}]
+    let autoTimer = null;
+
+    // Elements
+    const $ = (id) => document.getElementById(id);
+    const btnFetch = $('btnFetch');
+    const btnRefresh = $('btnRefresh');
+    const btnCSV = $('btnCSV');
+    const inputQ = $('q');
+    const status = $('status');
+    const err = $('err');
+    const raw = $('raw');
+    const rawWrap = $('rawWrap');
+    const list = $('list');
+    const rows = $('rows');
+    const count = $('count');
+    const updated = $('updated');
+    const auto = $('auto');
+
+    // Events
+    btnFetch.addEventListener('click', fetchStock);
+    btnRefresh.addEventListener('click', fetchStock);
+    btnCSV.addEventListener('click', downloadCSV);
+    inputQ.addEventListener('input', renderFiltered);
+    auto.addEventListener('change', () => {
+      if (auto.checked) {
+        autoTimer = setInterval(fetchStock, 60000);
+        fetchStock();
+      } else if (autoTimer) {
+        clearInterval(autoTimer); autoTimer = null;
+      }
+    });
 
     // --------------------------
     // PEMANGGILAN API: fetchStock
     // --------------------------
     async function fetchStock() {
-      const status = document.getElementById('status');
-      const err    = document.getElementById('err');
-      const raw    = document.getElementById('raw');
-      const rawWrap= document.getElementById('rawWrap');
-      const list   = document.getElementById('list');
-      const rows   = document.getElementById('rows');
-      const count  = document.getElementById('count');
-      const updated= document.getElementById('updated');
-
-      // reset
+      // reset UI
       err.classList.add('hidden');
       list.classList.add('hidden');
       rawWrap.classList.add('hidden');
@@ -121,83 +142,140 @@
       status.textContent = '🔄 Mengambil data…';
 
       try {
-        // >>> INI BARIS PENTING: pemanggilan API
-        const res  = await fetch(STOCK_URL, { cache: 'no-store' });
+        const res = await fetch(STOCK_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
 
         status.textContent = '';
-        if (!data || !data.message) {
-          err.textContent = '⚠️ Gagal memuat data stok.';
-          err.classList.remove('hidden');
-          return;
+        if (!data || typeof data.message !== 'string') {
+          throw new Error('Format response tidak dikenal');
         }
 
         // tampilkan RAW persis dari server
         raw.textContent = data.message;
         rawWrap.classList.remove('hidden');
 
-        // parse ke array terstruktur
+        // parse ke array terstruktur → tangani berbagai pola teks
         stockData = parseMessage(data.message);
 
         if (stockData.length === 0) {
-          err.textContent = 'Data kosong.';
-          err.classList.remove('hidden');
-          return;
+          throw new Error('Data kosong / tidak terdeteksi');
         }
 
-        // render list & meta
         renderFiltered();
         list.classList.remove('hidden');
         updated.textContent = 'Diperbarui: ' + (new Date()).toLocaleString('id-ID');
       } catch (e) {
         status.textContent = '';
-        err.textContent = '❌ Gagal menghubungi server.';
+        err.textContent = '❌ ' + (e?.message || 'Gagal menghubungi server. (CORS?)');
         err.classList.remove('hidden');
       }
     }
 
-    // parse "(BPAL3) Anggota XL 3 hari : 0"
+    // --------------------------
+    // PARSER pesan → array objek
+    // Menerima beberapa format umum dari bot/endpoint, contoh:
+    // (BPAL3) Anggota XL 3 hari : 0
+    // (BPAXXL19) XL Akrab XXL 19 : 2
+    // BPAL3 - Anggota XL 3 hari = 0
+    // Kode: BPAL3 | Nama: Anggota XL 3 hari | Stok: 0
+    // --------------------------
     function parseMessage(msg) {
-      const lines = String(msg || '')
-        .split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-      const rx = /^\(([^)]+)\)\s*(.*?):\s*(-?\d+)\s*$/;
+      const lines = String(msg || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
       const out = [];
       for (const line of lines) {
-        const m = line.match(rx);
-        if (!m) continue;
-        out.push({ sku: m[1].toUpperCase(), name: m[2], stock: parseInt(m[3], 10) });
+        let m;
+        // Pola 1: (CODE) Name : 12
+        m = line.match(/^\(([^)]+)\)\s*(.*?)\s*:\s*(-?[0-9][0-9.,]*)\s*$/);
+        if (m) { out.push(makeRow(m[1], m[2], m[3])); continue; }
+        // Pola 2: CODE - Name = 12
+        m = line.match(/^([A-Za-z0-9_.-]+)\s*-\s*(.*?)\s*=\s*(-?[0-9][0-9.,]*)\s*$/);
+        if (m) { out.push(makeRow(m[1], m[2], m[3])); continue; }
+        // Pola 3: Kode: X | Nama: Y | Stok: Z
+        m = line.match(/Kode\s*:\s*([^|]+)\s*\|\s*Nama\s*:\s*([^|]+)\s*\|\s*Stok\s*:\s*(-?[0-9][0-9.,]*)/i);
+        if (m) { out.push(makeRow(m[1], m[2], m[3])); continue; }
       }
       return out;
     }
 
-    // filter + render
-    function renderFiltered() {
-      const q = (document.getElementById('q').value || '').toLowerCase().trim();
-      let a = stockData.slice();
-      if (q) a = a.filter(x => (x.sku + ' ' + x.name).toLowerCase().includes(q));
-      a.sort((x,y)=> x.sku.localeCompare(y.sku,'en'));
-
-      document.getElementById('count').textContent = a.length.toString();
-      const rows = document.getElementById('rows');
-      rows.innerHTML = a.map(x => {
-        const badge =
-          x.stock === 0 ? '<span class="chip bg-red-100 text-red-700 border border-red-200">Habis</span>' :
-          x.stock  >  0 ? '<span class="chip bg-emerald-100 text-emerald-700 border border-emerald-200">Ready</span>' :
-                          '<span class="chip bg-slate-100 text-slate-700 border border-slate-200">-</span>';
-        return `
-          <div class="flex items-center justify-between bg-white/60 border border-slate-200 rounded-lg px-3 py-2">
-            <div class="truncate">
-              <span class="font-semibold text-indigo-700">(${x.sku})</span>
-              <span class="text-slate-700">${x.name}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              ${badge}
-              <span class="text-slate-700 font-medium w-10 text-right">${x.stock}</span>
-            </div>
-          </div>
-        `;
-      }).join('');
+    function makeRow(code, name, stockStr) {
+      const sku = String(code || '').toUpperCase().replace(/\s+/g,'');
+      const cleanNum = Number(String(stockStr).replace(/[^0-9-]/g, '')) || 0;
+      return { sku, name: String(name || '').trim(), stock: cleanNum };
     }
+
+    // --------------------------
+    // FILTER + RENDER
+    // --------------------------
+    function renderFiltered() {
+      const q = (inputQ.value || '').toLowerCase().trim();
+      let arr = stockData.slice();
+      if (q) arr = arr.filter(x => (x.sku + ' ' + x.name).toLowerCase().includes(q));
+      arr.sort((a,b) => a.sku.localeCompare(b.sku, 'en'));
+
+      count.textContent = String(arr.length);
+      rows.innerHTML = arr.map(x => rowHTML(x)).join('');
+
+      // pasang click listener untuk copy kode
+      rows.querySelectorAll('[data-sku]').forEach(el => {
+        el.addEventListener('click', () => copySKU(el.getAttribute('data-sku')));
+      });
+    }
+
+    function rowHTML(x) {
+      const badge = x.stock === 0
+        ? '<span class="chip bg-red-100 text-red-700 border border-red-200">Habis</span>'
+        : x.stock > 0
+        ? '<span class="chip bg-emerald-100 text-emerald-700 border border-emerald-200">Ready</span>'
+        : '<span class="chip bg-slate-100 text-slate-700 border border-slate-200">-</span>';
+      return `
+        <div class="row transition rounded-lg bg-white/60 border border-slate-200 px-3 py-2 flex items-center justify-between" data-sku="${x.sku}">
+          <div class="truncate">
+            <span class="font-semibold text-indigo-700">(${x.sku})</span>
+            <span class="text-slate-700">${escapeHTML(x.name)}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${badge}
+            <span class="text-slate-700 font-medium w-10 text-right">${x.stock}</span>
+            <button class="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700" onclick="event.stopPropagation(); copySKU('${x.sku}')">Copy</button>
+          </div>
+        </div>`;
+    }
+
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+    }
+
+    async function copySKU(sku) {
+      try {
+        await navigator.clipboard.writeText(sku);
+        toast(`Kode ${sku} tersalin.`);
+      } catch {
+        toast('Gagal menyalin.');
+      }
+    }
+
+    function downloadCSV() {
+      if (!stockData.length) return toast('Belum ada data.');
+      const header = 'sku,name,stock\n';
+      const rows = stockData.map(x => [x.sku, '"' + (x.name||'').replace(/"/g,'""') + '"', x.stock].join(','));
+      const blob = new Blob([header + rows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'stok-xl-akrab.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function toast(text) {
+      const div = document.createElement('div');
+      div.className = 'fixed left-1/2 -translate-x-1/2 bottom-6 bg-slate-900 text-white text-sm px-3 py-2 rounded shadow-lg';
+      div.textContent = text;
+      document.body.appendChild(div);
+      setTimeout(()=> div.remove(), 1400);
+    }
+
+    // auto-run first load
+    fetchStock();
   </script>
 </body>
 </html>
