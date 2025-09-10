@@ -1,79 +1,94 @@
-// CommonJS agar aman di Vercel Node
-// ENV yang dipakai: SUPPLIER_URL, SUPPLIER_KEY (opsional), SUPPLIER_TOKEN (opsional), CORS_ORIGIN (opsional), FETCH_TIMEOUT_MS (opsional)
+// api/stok.js
+// Menarik stok dari supplier lalu menormalkan jadi [{sku,name,stock}]
+// ENV opsional: UPSTREAM_URL, CORS_ORIGIN, FETCH_TIMEOUT_MS
 
 module.exports = async (req, res) => {
-  // --- CORS ---
   const origin = process.env.CORS_ORIGIN || "*";
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-api-key");
 
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
-  if (req.method !== "GET") {
-    res.status(405).json({ ok: false, error: "Method not allowed" });
-    return;
-  }
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method not allowed" });
 
-  const { sku, number } = req.query || {};
-  if (!sku && !number) {
-    res.status(400).json({ ok: false, error: "Parameter 'sku' atau 'number' wajib ada" });
-    return;
-  }
-  if (!process.env.SUPPLIER_URL) {
-    res.status(500).json({ ok: false, error: "SUPPLIER_URL belum di-set di Environment Vercel" });
-    return;
-  }
+  const UPSTREAM = process.env.UPSTREAM_URL
+    // default: endpoint yang sama dipakai bot untuk akrab
+    || "https://panel.khfy-store.com/api/api-xl-v7/cek_stock_akrab";
 
-  // --- rakit URL upstream ---
-  const u = new URL(process.env.SUPPLIER_URL);
-  if (sku) u.searchParams.set("sku", sku);
-  if (number) u.searchParams.set("number", number);
-
-  // --- timeout & fetch ---
   const timeoutMs = Number(process.env.FETCH_TIMEOUT_MS || 15000);
   const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    // dukung 2 pola umum auth
-    if (process.env.SUPPLIER_KEY) headers["x-api-key"] = process.env.SUPPLIER_KEY;
-    if (process.env.SUPPLIER_TOKEN) headers["Authorization"] = `Bearer ${process.env.SUPPLIER_TOKEN}`;
+    // --- fetch ke supplier (seperti di bot: cekStok) ---
+    const r = await fetch(UPSTREAM, { method: "GET", signal: controller.signal });
+    clearTimeout(timer);
+    const text = await r.text();
 
-    const upstream = await fetch(u.toString(), {
-      method: "GET",
-      headers,
-      signal: controller.signal,
-    });
-    clearTimeout(t);
+    let json; try { json = JSON.parse(text); } catch { json = { raw: text }; }
 
-    const text = await upstream.text();
-    let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    // --- normalisasi seperti extractStockList di bot ---
+    function extractStockList(raw) {
+      // 1) Coba dari array/objek terstruktur
+      const data = Array.isArray(raw?.data) ? raw.data
+        : (Array.isArray(raw) ? raw : (raw?.items || raw?.result || raw?.rows || []));
 
-    if (!upstream.ok) {
-      res.status(502).json({
-        ok: false,
-        error: `Upstream ${upstream.status} ${upstream.statusText}`,
-        data,
-      });
-      return;
+      const out = [];
+      for (const it of data) {
+        if (!it) continue;
+        const lower = {}; for (const k in it) lower[k.toLowerCase()] = it[k];
+        const sku = String(lower.sku || lower.kode || lower.code || lower.product || lower.product_code || '').toUpperCase();
+        const name = String(lower.nama || lower.name || lower.product_name || lower.title || sku || '-');
+        let stock = lower.stock ?? lower.stok ?? lower.qty ?? lower.quantity ?? lower.sisa ?? lower.available ?? lower.status;
+        if (!sku) continue;
+
+        let nstock;
+        if (typeof stock === 'boolean') nstock = stock ? 1 : 0;
+        else if (typeof stock === 'string') {
+          const s = stock.trim();
+          if (/^-?\d+$/.test(s)) nstock = parseInt(s, 10);
+          else if (/ready|tersedia|available|ada/i.test(s)) nstock = 1;
+          else if (/habis|sold ?out|kosong|tidak/i.test(s)) nstock = 0;
+          else continue;
+        } else {
+          nstock = Number(stock);
+          if (Number.isNaN(nstock)) continue;
+        }
+        out.push({ sku, name, stock: nstock });
+      }
+      if (out.length) return out;
+
+      // 2) Fallback: parse baris "(KODE) Nama ... : 0"
+      const msg = String(raw?.data?.message || raw?.message || '').trim();
+      if (!msg) return [];
+      const lines = msg.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const seen = new Set();
+      for (const line of lines) {
+        const m = line.match(/^\(([^)]+)\).*?:\s*(-?\d+)\s*$/);
+        if (!m) continue;
+        const sku = m[1].toUpperCase();
+        const stock = parseInt(m[2], 10);
+        if (!Number.isFinite(stock) || seen.has(sku)) continue;
+        seen.add(sku);
+        out.push({ sku, name: sku, stock });
+      }
+      return out;
     }
 
-    // cache ringan di edge vercel
+    const list = extractStockList(json);
+    if (!list.length) {
+      return res.status(502).json({ ok: false, error: "Upstream tidak mengembalikan daftar stok.", upstream_ok: r.ok, upstream_status: r.status, data: json });
+    }
+
+    // teks mirip bot: "(KODE) Nama : stok"
+    const lines = list.map(it => `(${it.sku}) ${it.name} : ${it.stock}`);
+    const textBlock = lines.join("\n");
+
     res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=300");
-    res.status(200).json({ ok: true, upstream_status: upstream.status, data });
-  } catch (err) {
-    const isAbort = err && (err.name === "AbortError" || err.code === "ABORT_ERR");
-    res.status(isAbort ? 504 : 502).json({
-      ok: false,
-      error: isAbort ? "Timeout ke server suplier" : (err.message || "Proxy error"),
-    });
+    return res.status(200).json({ ok: true, count: list.length, list, text: textBlock });
+  } catch (e) {
+    const isAbort = e && (e.name === "AbortError" || e.code === "ABORT_ERR");
+    return res.status(isAbort ? 504 : 502).json({ ok: false, error: isAbort ? "Timeout ke server suplier" : (e.message || "Proxy error") });
   }
 };
