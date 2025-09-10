@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zain Store • Cek Stok XL Akrab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+    .glass { background: rgba(255,255,255,.75); backdrop-filter: blur(8px); }
+    .chip  { display:inline-flex; align-items:center; border-radius:9999px; padding:.25rem .75rem; font-size:.75rem; font-weight:600 }
+    .mono  { font-variant-numeric: tabular-nums; }
+    .watermark{ position: fixed; right: 12px; bottom: 12px; z-index: 50; background: linear-gradient(135deg,#8b5cf6,#3b82f6); color:#fff; padding:8px 12px; border-radius:9999px; font-size:12px; box-shadow:0 8px 24px rgba(59,130,246,.35);}
+    .row:hover{ box-shadow:0 8px 20px rgba(2,6,23,.06); transform: translateY(-1px);}
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50">
+
+  <!-- Header -->
+  <header class="w-full border-b border-indigo-100 bg-gradient-to-r from-indigo-600 via-fuchsia-500 to-sky-500 text-white">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-white/15 grid place-items-center font-bold">ZS</div>
+        <div>
+          <div class="text-lg font-semibold">Zain Store</div>
+          <div class="text-xs opacity-90 -mt-0.5">Cek Stok XL Akrab</div>
+        </div>
+      </div>
+      <div class="hidden lg:flex items-center gap-2">
+        <button id="btnRefresh" class="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition">
+          ↻ Refresh
+        </button>
+        <label class="text-xs flex items-center gap-2 bg-white/10 px-2 py-1 rounded">
+          <input id="auto" type="checkbox" class="scale-110 accent-white" /> Auto 60s
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-4xl mx-auto px-4 py-6">
+    <div class="glass rounded-2xl shadow-xl p-6 border border-white/60">
+      <h1 class="text-xl font-semibold text-indigo-700">📦 Cek Stok XL Akrab</h1>
+
+      <!-- Info -->
+      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3">
+          <b>akrab bekasan, restok tiap hari jam 15.00 WIB</b>
+        </div>
+        <div class="bg-cyan-100 border border-cyan-200 text-cyan-900 rounded-xl p-3">
+          <b>Gunakan kode untuk transaksi di Bot WA/Telegram.<br>
+            Contoh: <span class="bg-slate-900 text-white rounded px-2 py-0.5">BPAL3.0878787878</span></b>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="mt-4 flex flex-col sm:flex-row gap-2">
+        <button id="btnFetch" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition">
+          🔍 Cek Stok
+        </button>
+        <input id="q" type="text" placeholder="Cari kode/nama (mis. BPAL3 / XL)…" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+        <button id="btnCSV" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium px-4 py-2 rounded-lg transition">⬇️ CSV</button>
+      </div>
+
+      <!-- Status & error -->
+      <div id="status" class="mt-3 text-sm text-slate-600"></div>
+      <div id="err" class="mt-3 hidden bg-red-50 border border-red-200 text-red-800 rounded-lg p-3 text-sm"></div>
+
+      <!-- Raw (persis dari server) -->
+      <details id="rawWrap" class="mt-4 hidden">
+        <summary class="cursor-pointer text-sm text-slate-600 hover:text-slate-800">Tampilkan raw dari server</summary>
+        <pre id="raw" class="mt-2 whitespace-pre-wrap bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-900 text-sm"></pre>
+      </details>
+
+      <!-- Daftar terstruktur -->
+      <div id="list" class="mt-4 hidden">
+        <div class="flex items-center justify-between mb-2">
+          <div class="chip bg-indigo-100 text-indigo-700 border border-indigo-200">
+            <span id="count">0</span>&nbsp; item
+          </div>
+          <div id="updated" class="text-xs text-slate-500"></div>
+        </div>
+        <div id="rows" class="mono grid gap-1"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="watermark">Zain Store — Owner: 081252162402</div>
+
+  <script>
+    // Pakai proxy same-origin (API Vercel)
+    const STOCK_URL = (window.STOCK_URL_OVERRIDE) || '/api/stok';
+
+    // state
+    let stockData = []; // [{sku,name,stock}]
+    let autoTimer = null;
+
+    // Elements
+    const $ = (id) => document.getElementById(id);
+    const btnFetch = $('btnFetch');
+    const btnRefresh = $('btnRefresh');
+    const btnCSV = $('btnCSV');
+    const inputQ = $('q');
+    const status = $('status');
+    const err = $('err');
+    const raw = $('raw');
+    const rawWrap = $('rawWrap');
+    const list = $('list');
+    const rows = $('rows');
+    const count = $('count');
+    const updated = $('updated');
+    const auto = $('auto');
+
+    // Events
+    btnFetch.addEventListener('click', fetchStock);
+    btnRefresh.addEventListener('click', fetchStock);
+    btnCSV.addEventListener('click', downloadCSV);
+    inputQ.addEventListener('input', renderFiltered);
+    auto.addEventListener('change', () => {
+      if (auto.checked) { autoTimer = setInterval(fetchStock, 60000); fetchStock(); }
+      else if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    });
+
+    async function fetchStock() {
+      err.classList.add('hidden');
+      list.classList.add('hidden');
+      rawWrap.classList.add('hidden');
+      rows.innerHTML = '';
+      count.textContent = '0';
+      status.textContent = '🔄 Mengambil data…';
+
+      try {
+        const res = await fetch(STOCK_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        status.textContent = '';
+        if (!data || typeof data.message !== 'string') throw new Error('Format response tidak dikenal');
+
+        raw.textContent = data.message;
+        rawWrap.classList.remove('hidden');
+
+        stockData = parseMessage(data.message);
+        if (!stockData.length) throw new Error('Data kosong / tidak terdeteksi');
+
+        renderFiltered();
+        list.classList.remove('hidden');
+        updated.textContent = 'Diperbarui: ' + (new Date()).toLocaleString('id-ID');
+      } catch (e) {
+        status.textContent = '';
+        err.textContent = '❌ ' + (e?.message || 'Gagal menghubungi server.');
+        err.classList.remove('hidden');
+      }
+    }
+
+    // Parser multi-format
+    function parseMessage(msg) {
+      const lines = String(msg || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const out = [];
+      for (const line of lines) {
+        let m;
+        // (CODE) Name : 12
+        m = line.match(/^\(([^)]+)\)\s*(.*?)\s*:\s*(-?[0-9][0-9.,]*)\s*$/);
+        if (m) { out.push(makeRow(m[1], m[2], m[3])); continue; }
+        // CODE - Name = 12
+        m = line.match(/^([A-Za-z0-9_.-]+)\s*-\s*(.*?)\s*=\s*(-?[0-9][0-9.,]*)\s*$/);
+        if (m) { out.push(makeRow(m[1], m[2], m[3])); continue; }
+        // Kode: X | Nama: Y | Stok: Z
+        m = line.match(/Kode\s*:\s*([^|]+)\s*\|\s*Nama\s*:\s*([^|]+)\s*\|\s*Stok\s*:\s*(-?[0-9][0-9.,]*)/i);
+        if (m) { out.push(makeRow(m[1], m[2], m[3])); continue; }
+      }
+      return out;
+    }
+    function makeRow(code, name, stockStr) {
+      const sku = String(code || '').toUpperCase().replace(/\s+/g,'');
+      const cleanNum = Number(String(stockStr).replace(/[^0-9-]/g, '')) || 0;
+      return { sku, name: String(name || '').trim(), stock: cleanNum };
+    }
+
+    function renderFiltered() {
+      const q = (inputQ.value || '').toLowerCase().trim();
+      let arr = stockData.slice();
+      if (q) arr = arr.filter(x => (x.sku + ' ' + x.name).toLowerCase().includes(q));
+      arr.sort((a,b) => a.sku.localeCompare(b.sku, 'en'));
+
+      count.textContent = String(arr.length);
+      rows.innerHTML = arr.map(x => rowHTML(x)).join('');
+      rows.querySelectorAll('[data-sku]').forEach(el => {
+        el.addEventListener('click', () => copySKU(el.getAttribute('data-sku')));
+      });
+    }
+    function rowHTML(x) {
+      const badge = x.stock === 0
+        ? '<span class="chip bg-red-100 text-red-700 border border-red-200">Habis</span>'
+        : x.stock > 0
+        ? '<span class="chip bg-emerald-100 text-emerald-700 border border-emerald-200">Ready</span>'
+        : '<span class="chip bg-slate-100 text-slate-700 border border-slate-200">-</span>';
+      return `
+        <div class="row transition rounded-lg bg-white/60 border border-slate-200 px-3 py-2 flex items-center justify-between" data-sku="${x.sku}">
+          <div class="truncate">
+            <span class="font-semibold text-indigo-700">(${x.sku})</span>
+            <span class="text-slate-700">${escapeHTML(x.name)}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${badge}
+            <span class="text-slate-700 font-medium w-10 text-right">${x.stock}</span>
+            <button class="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700" onclick="event.stopPropagation(); copySKU('${x.sku}')">Copy</button>
+          </div>
+        </div>`;
+    }
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    async function copySKU(sku) {
+      try { await navigator.clipboard.writeText(sku); toast(`Kode ${sku} tersalin.`); }
+      catch { toast('Gagal menyalin.'); }
+    }
+    function downloadCSV() {
+      if (!stockData.length) return toast('Belum ada data.');
+      const header = 'sku,name,stock\n';
+      const rows = stockData.map(x => [x.sku, '"' + (x.name||'').replace(/"/g,'""') + '"', x.stock].join(','));
+      const blob = new Blob([header + rows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'stok-xl-akrab.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function toast(text) {
+      const div = document.createElement('div');
+      div.className = 'fixed left-1/2 -translate-x-1/2 bottom-6 bg-slate-900 text-white text-sm px-3 py-2 rounded shadow-lg';
+      div.textContent = text; document.body.appendChild(div);
+      setTimeout(()=> div.remove(), 1400);
+    }
+
+    // auto-run first load
+    fetchStock();
+  </script>
+</body>
+</html>
