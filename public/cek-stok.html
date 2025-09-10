@@ -1,72 +1,378 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cek Stok XL Akrab</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Zain Store • Cek Stok XL Akrab</title>
+  <meta name="theme-color" content="#181a29"/>
+
   <style>
-    :root { --bg:#f2f4f8; --card:#fff; --ink:#0e1116; --muted:#556070; --primary:#2d6cdf }
-    @media (prefers-color-scheme: dark){
-      :root { --bg:#0f1115; --card:#151923; --ink:#e7ecf3; --muted:#94a3b8; --primary:#3b82f6 }
+    /* ========== GEN Z AESTHETIC ========== */
+    :root{
+      --bg:#0e111b;               /* base dark */
+      --card:#121628;             /* glass card */
+      --ink:#e9eef7;              /* text */
+      --muted:#9aa6bd;
+      --stroke:#22263a;
+      --brand:#7c9cff;            /* soft neon blue */
+      --brand-2:#b38cff;          /* lilac accent */
+      --ok:#66e3a1;
+      --warn:#ffd479;
+      --danger:#ff8a8a;
+      --radius:18px;
+      --shadow:0 20px 50px rgba(0,0,0,.35);
     }
-    body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;margin:0}
-    .wrap{min-height:100dvh;display:grid;place-items:center;padding:24px}
-    .card{width:min(680px,92vw);background:var(--card);border-radius:16px;padding:22px;border:1px solid #00000022;box-shadow:0 10px 30px #00000018}
-    h2{margin:8px 0 14px 0}
-    .note{background:#fef3c7;border:1px solid #f59e0b55;color:#7c4a02;padding:10px;border-radius:10px;margin:10px 0}
-    .how{background:#c7f9ff;border:1px solid #22d3ee55;color:#034b58;padding:10px;border-radius:10px;margin:10px 0}
-    button{background:var(--primary);color:white;border:none;border-radius:10px;padding:12px 16px;cursor:pointer}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .out{margin-top:14px;background:#0c101a10;border:1px solid #00000022;border-radius:12px;padding:12px;max-height:60vh;overflow:auto;white-space:pre}
-    .muted{color:var(--muted);font-size:.92rem}
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#eef1f7; --card:#ffffff; --ink:#0e1220;
+        --muted:#51607a; --stroke:#e7eaf1;
+        --brand:#4f6bff; --brand-2:#8f6bff;
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:var(--bg);
+      /* animated aurora background */
+      position:relative; overflow-x:hidden;
+      --g1:radial-gradient(1000px 600px at -10% -20%, #4f6bff22, transparent 60%);
+      --g2:radial-gradient(900px 600px at 110% -10%, #8f6bff22, transparent 60%);
+      --g3:radial-gradient(700px 500px at 50% 120%, #3be4b322, transparent 60%);
+      background-image:var(--g1),var(--g2),var(--g3);
+      animation:aurora 16s ease-in-out infinite alternate;
+    }
+    @keyframes aurora{
+      0%{background-position:0 0,0 0,0 0}
+      100%{background-position:20px -30px,-40px 10px,0 -20px}
+    }
+
+    .shell{min-height:100%; display:grid; place-items:center; padding:28px}
+    .card{
+      width:min(980px,94vw);
+      background:linear-gradient(180deg, #ffffff05, #00000010);
+      border:1px solid var(--stroke); border-radius:var(--radius);
+      box-shadow:var(--shadow); backdrop-filter:blur(10px);
+      overflow:hidden;
+    }
+
+    /* Header */
+    .hero{padding:22px 22px 8px 22px; position:relative}
+    .brand{
+      display:flex; gap:14px; align-items:center; flex-wrap:wrap;
+    }
+    .logo{
+      width:48px; height:48px; border-radius:12px;
+      background:conic-gradient(from 130deg,var(--brand),var(--brand-2),#46e6b8);
+      box-shadow:0 10px 25px #0007;
+      display:grid; place-items:center; color:#fff; font-weight:800;
+      transform:translateZ(0); transition:transform .25s ease;
+    }
+    .logo:hover{ transform:rotate(-2deg) scale(1.04); }
+    .title{line-height:1.1}
+    .title h1{margin:0; font-size:clamp(18px,2.2vw,24px)}
+    .title p{margin:.25rem 0 0; color:var(--muted); font-size:.95rem}
+
+    .actions{
+      margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center
+    }
+    .btn{
+      border:none; border-radius:12px; padding:12px 16px; cursor:pointer;
+      color:#fff; background:
+        linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow:0 10px 25px rgba(124,156,255,.35);
+      transform:translateY(0); transition:transform .15s ease, filter .15s ease;
+    }
+    .btn:hover{ transform:translateY(-2px); filter:saturate(1.05) brightness(1.04); }
+    .btn:active{ transform:translateY(0); }
+
+    .btn-ghost{
+      background:transparent; color:var(--ink); border:1px solid var(--stroke);
+      box-shadow:none;
+    }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--stroke); border-radius:999px; padding:8px 10px;
+      background:#00000014;
+    }
+    .switch{
+      width:40px; height:24px; border-radius:999px; background:#ffffff22; position:relative; border:1px solid var(--stroke); cursor:pointer;
+    }
+    .switch i{
+      position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%;
+      background:#fff; transition:left .18s ease;
+    }
+    .switch.active{background:#40e0a633;}
+    .switch.active i{ left:18px; }
+
+    .search{
+      display:flex; align-items:center; gap:8px; background:#00000012; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke);
+    }
+    .search input{
+      background:transparent; border:none; outline:none; color:var(--ink); width:180px;
+    }
+
+    /* Body */
+    .body{padding:12px 22px 22px}
+    .meta{display:flex; gap:12px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:.92rem; margin-bottom:10px}
+    .meta .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); display:inline-block}
+    .meta .warn{background:var(--warn)}
+    .badgelite{
+      padding:6px 10px; border:1px dashed var(--stroke); border-radius:10px; background:#0000000a;
+    }
+
+    .tabbar{display:flex; gap:6px; margin-bottom:8px}
+    .tab{
+      padding:8px 12px; border:1px solid var(--stroke); border-radius:10px; cursor:pointer; font-size:.92rem; color:var(--muted);
+      background:#00000008; transition:all .15s ease;
+    }
+    .tab.active{color:var(--ink); border-color:#6a7cffaa; box-shadow:inset 0 0 0 1px #6a7cff33}
+    .grid{
+      border:1px solid var(--stroke); border-radius:14px; overflow:hidden; background:#0a0d170d;
+    }
+    .thead,.row{
+      display:grid; grid-template-columns: 140px 1fr 100px; gap:0; align-items:center;
+      padding:12px 14px; border-bottom:1px solid var(--stroke);
+    }
+    .thead{position:sticky; top:0; backdrop-filter:blur(10px); background:linear-gradient(180deg,#0b0f1d88,#0b0f1d22);}
+    .rows{max-height:56vh; overflow:auto;}
+    .row{animation:fadein .35s ease both}
+    .row:nth-child(odd){background:#ffffff03}
+    @keyframes fadein{
+      from{opacity:0; transform:translateY(6px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+
+    .stk-ok{color:var(--ok); font-weight:600}
+    .stk-0{color:var(--danger); font-weight:600}
+
+    .wa-block{
+      display:none; /* toggled by tab */
+      border:1px solid var(--stroke); border-radius:12px; padding:12px; margin-top:10px;
+      background:#0000000a; white-space:pre-wrap; max-height:56vh; overflow:auto; font-family:ui-monospace,Menlo,Consolas,monospace;
+    }
+
+    /* Loader shimmer */
+    .shimmer{
+      position:relative; overflow:hidden; background:#0f1423; height:48px; border-radius:10px; margin:8px 0;
+    }
+    .shimmer::after{
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent, #ffffff15, transparent);
+      animation:shine 1.2s infinite;
+    }
+    @keyframes shine{ from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+
+    .footer{
+      padding:14px 22px; border-top:1px solid var(--stroke); display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; color:var(--muted); font-size:.9rem
+    }
+    .links{display:flex; gap:10px; flex-wrap:wrap}
+    .a{
+      color:#fff; text-decoration:none;
+      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      padding:9px 12px; border-radius:10px;
+      box-shadow:0 10px 20px rgba(140,120,255,.25);
+      transition:transform .15s ease;
+    }
+    .a:hover{ transform:translateY(-2px) }
+
+    /* Toast */
+    .toast{
+      position:fixed; left:50%; bottom:16px; transform:translateX(-50%) translateY(20px);
+      background:#0b1222; color:#cfe3ff; padding:10px 14px; border:1px solid #213055; border-radius:10px; opacity:0;
+      transition:all .25s ease; box-shadow:var(--shadow); z-index:50
+    }
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h2>📦 Cek Stok XL Akrab</h2>
-      <div class="note">akrab bekasan, restok tiap hari jam 15.00 WIB</div>
-      <div class="how">Gunakan kode di bawah untuk transaksi di Bot WA/Telegram. Contoh: <b>BPAL3.0878787878</b></div>
-      <div class="row">
-        <button id="btn">🔎 Cek Stok</button>
-        <button id="copy" title="Salin hasil" style="background:#10b981">📋 Copy</button>
-        <span id="status" class="muted"></span>
+  <div class="shell">
+    <div class="card" role="region" aria-label="Cek Stok Zain Store">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="brand">
+          <div class="logo" aria-hidden="true">ZS</div>
+          <div class="title">
+            <h1>Zain Store <span style="color:var(--brand)">•</span> Live Stock XL Akrab</h1>
+            <p>Restok harian sekitar <b>15:00 WIB</b>. UI baru—lebih cepat, modern, dan siap copy!</p>
+          </div>
+        </div>
+
+        <div class="actions" aria-label="Aksi Utama">
+          <button id="btnFetch" class="btn">🔎 Cek Stok</button>
+          <button id="btnCopy" class="btn btn-ghost" title="Salin hasil teks">📋 Copy (format WA)</button>
+
+          <span class="pill">
+            <span>Ready only</span>
+            <span id="swReady" class="switch" role="switch" aria-checked="false"><i></i></span>
+          </span>
+
+          <label class="search" for="q">
+            🔍 <input id="q" placeholder="Cari kode / nama…" autocomplete="off"/>
+          </label>
+        </div>
       </div>
-      <div id="out" class="out" hidden></div>
+
+      <!-- BODY -->
+      <div class="body">
+        <div class="meta" id="meta">
+          <span class="badgelite">Belum dimuat</span>
+        </div>
+
+        <div class="tabbar" role="tablist" aria-label="Tampilan">
+          <div id="tabList" class="tab active" role="tab" aria-selected="true">Daftar</div>
+          <div id="tabWA" class="tab" role="tab" aria-selected="false">Teks (WA)</div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="listWrap" class="grid" role="table" aria-label="Daftar produk">
+          <div class="thead" role="row">
+            <div role="columnheader">Kode</div>
+            <div role="columnheader">Nama Produk</div>
+            <div role="columnheader" style="text-align:right">Stok</div>
+          </div>
+          <div id="rows" class="rows" role="rowgroup">
+            <!-- skeleton awal -->
+            <div class="shimmer"></div>
+            <div class="shimmer" style="height:44px"></div>
+            <div class="shimmer" style="height:44px"></div>
+          </div>
+        </div>
+
+        <!-- WA TEXT VIEW -->
+        <div id="waText" class="wa-block" aria-label="Teks format WA"></div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="footer">
+        <div>© <span id="year"></span> Zain Store • UI v2</div>
+        <div class="links">
+          <a class="a" href="https://wa.me/6281252162402" target="_blank" rel="noopener" title="Chat Owner">
+            👑 Chat Owner (0812-5216-2402)
+          </a>
+          <a class="a" href="https://wa.me/6285147140814" target="_blank" rel="noopener" title="Transaksi via Bot">
+            🤖 Transaksi via Bot (0851-4714-0814)
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 
+  <div id="toast" class="toast" role="status"></div>
+
   <script>
     const $ = (id)=>document.getElementById(id);
-    const btn = $("btn"), copyBtn = $("copy"), out = $("out"), statusEl = $("status");
+    const rows = $("rows"), meta = $("meta"), btn = $("btnFetch"), copyBtn = $("btnCopy"),
+          waText = $("waText"), listWrap = $("listWrap"), yearEl = $("year"),
+          tabList = $("tabList"), tabWA = $("tabWA"), swReady = $("swReady"), q = $("q"),
+          toast = $("toast");
 
-    async function cek() {
-      statusEl.textContent = "Memeriksa stok…";
-      out.hidden = true; out.textContent = "";
+    yearEl.textContent = new Date().getFullYear();
+
+    let raw = null;        // full API payload
+    let list = [];         // normalized array {sku,name,stock}
+    let textBlock = "";    // WA-style text
+    let filtered = [];     // view array
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"), 1500);
+    }
+
+    function setMeta({count=0, loaded=false}={}){
+      meta.innerHTML = loaded
+        ? `<span class="dot"></span> <b>${count}</b> produk • dimuat ${new Date().toLocaleTimeString()}`
+        : `<span class="badgelite">Belum dimuat</span>`;
+    }
+
+    function renderRows(){
+      const query = (q.value || "").trim().toLowerCase();
+      const onlyReady = swReady.classList.contains("active");
+      filtered = list.filter(it => {
+        if (onlyReady && !(Number(it.stock)>0)) return false;
+        if (!query) return true;
+        return it.sku.toLowerCase().includes(query) || String(it.name||"").toLowerCase().includes(query);
+      });
+
+      rows.innerHTML = "";
+      if (!filtered.length){
+        rows.innerHTML = `<div class="row"><div>—</div><div>Tidak ada data cocok</div><div style="text-align:right">0</div></div>`;
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      filtered.forEach((it, idx)=>{
+        const r = document.createElement("div");
+        r.className = "row";
+        r.setAttribute("role","row");
+        r.style.animationDelay = (idx*6)+"ms";
+        r.innerHTML = `
+          <div role="cell"><b>${it.sku}</b></div>
+          <div role="cell">${escapeHtml(it.name || "")}</div>
+          <div role="cell" style="text-align:right" class="${Number(it.stock)>0 ? 'stk-ok':'stk-0'}">${it.stock}</div>
+        `;
+        frag.appendChild(r);
+      });
+      rows.appendChild(frag);
+      setMeta({count:list.length, loaded:true});
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+
+    async function fetchStok(){
+      // skeleton
+      rows.innerHTML = `<div class="shimmer"></div><div class="shimmer" style="height:44px"></div><div class="shimmer" style="height:44px"></div>`;
+      setMeta({loaded:false});
+
       const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
       try{
         const r = await fetch("/api/stok", { signal: ctl.signal });
         clearTimeout(t);
-        if (!r.ok) {
-          statusEl.textContent = `Gagal (${r.status})`;
-          out.hidden = false; out.textContent = (await r.text()).slice(0,800);
+        if(!r.ok){
+          rows.innerHTML = `<div class="row"><div>ERR</div><div>Gagal memuat (${r.status})</div><div style="text-align:right">0</div></div>`;
+          waText.textContent = await r.text();
           return;
         }
-        const j = await r.json();
-        statusEl.textContent = `OK • ${j.count} produk`;
-        out.hidden = false; out.textContent = j.text || JSON.stringify(j.list,null,2);
+        raw = await r.json();
+        list = Array.isArray(raw.list) ? raw.list : [];
+        textBlock = raw.text || list.map(it=>`(${it.sku}) ${it.name} : ${it.stock}`).join("\n");
+        waText.textContent = textBlock;
+        renderRows();
+        // subtle success
+        showToast("Stok dimuat ✅");
       }catch(e){
-        statusEl.textContent = "Network error / Timeout";
-        out.hidden = false; out.textContent = e.message || "Failed to fetch";
+        rows.innerHTML = `<div class="row"><div>ERR</div><div>${escapeHtml(e.message || "Network error")}</div><div style="text-align:right">0</div></div>`;
+        showToast("Gagal memuat");
       }
     }
 
-    btn.onclick = cek;
-    copyBtn.onclick = async () => {
-      if (out.hidden || !out.textContent) return;
-      try { await navigator.clipboard.writeText(out.textContent); statusEl.textContent = "Tersalin ✅"; }
-      catch { statusEl.textContent = "Gagal menyalin"; }
+    // Tabs
+    function activateTab(which){
+      const isList = which === "list";
+      tabList.classList.toggle("active", isList);
+      tabWA.classList.toggle("active", !isList);
+      listWrap.style.display = isList ? "block" : "none";
+      waText.style.display = isList ? "none" : "block";
+    }
+    tabList.onclick = ()=>activateTab("list");
+    tabWA.onclick = ()=>activateTab("wa");
+
+    // Controls
+    swReady.onclick = ()=>{ swReady.classList.toggle("active"); renderRows(); };
+    q.addEventListener("input", ()=>renderRows());
+    btn.onclick = fetchStok;
+    copyBtn.onclick = async()=>{
+      const text = textBlock || (Array.isArray(list) && list.length ? list.map(it=>`(${it.sku}) ${it.name} : ${it.stock}`).join("\n") : "");
+      if(!text){ showToast("Belum ada data"); return; }
+      try{ await navigator.clipboard.writeText(text); showToast("Tersalin ✨"); }
+      catch{ showToast("Gagal menyalin"); }
     };
+
+    // Default: tampilkan tab List dulu; tidak otomatis fetch agar sesuai permintaanmu
+    activateTab("list");
   </script>
 </body>
 </html>
