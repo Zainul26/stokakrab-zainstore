@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#181a29"/>
 
   <style>
-    /* ========== GEN Z AESTHETIC ========== */
+    /* ====== GEN Z AESTHETIC ====== */
     :root{
       --bg:#0e111b;               /* base dark */
       --card:#121628;             /* glass card */
@@ -58,9 +58,7 @@
 
     /* Header */
     .hero{padding:22px 22px 8px 22px; position:relative}
-    .brand{
-      display:flex; gap:14px; align-items:center; flex-wrap:wrap;
-    }
+    .brand{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
     .logo{
       width:48px; height:48px; border-radius:12px;
       background:conic-gradient(from 130deg,var(--brand),var(--brand-2),#46e6b8);
@@ -73,13 +71,10 @@
     .title h1{margin:0; font-size:clamp(18px,2.2vw,24px)}
     .title p{margin:.25rem 0 0; color:var(--muted); font-size:.95rem}
 
-    .actions{
-      margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center
-    }
+    .actions{margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     .btn{
       border:none; border-radius:12px; padding:12px 16px; cursor:pointer;
-      color:#fff; background:
-        linear-gradient(135deg, var(--brand), var(--brand-2));
+      color:#fff; background:linear-gradient(135deg, var(--brand), var(--brand-2));
       box-shadow:0 10px 25px rgba(124,156,255,.35);
       transform:translateY(0); transition:transform .15s ease, filter .15s ease;
     }
@@ -109,18 +104,13 @@
     .search{
       display:flex; align-items:center; gap:8px; background:#00000012; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke);
     }
-    .search input{
-      background:transparent; border:none; outline:none; color:var(--ink); width:180px;
-    }
+    .search input{background:transparent; border:none; outline:none; color:var(--ink); width:180px}
 
     /* Body */
     .body{padding:12px 22px 22px}
     .meta{display:flex; gap:12px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:.92rem; margin-bottom:10px}
     .meta .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); display:inline-block}
-    .meta .warn{background:var(--warn)}
-    .badgelite{
-      padding:6px 10px; border:1px dashed var(--stroke); border-radius:10px; background:#0000000a;
-    }
+    .badgelite{padding:6px 10px; border:1px dashed var(--stroke); border-radius:10px; background:#0000000a}
 
     .tabbar{display:flex; gap:6px; margin-bottom:8px}
     .tab{
@@ -128,28 +118,23 @@
       background:#00000008; transition:all .15s ease;
     }
     .tab.active{color:var(--ink); border-color:#6a7cffaa; box-shadow:inset 0 0 0 1px #6a7cff33}
-    .grid{
-      border:1px solid var(--stroke); border-radius:14px; overflow:hidden; background:#0a0d170d;
-    }
+
+    .grid{border:1px solid var(--stroke); border-radius:14px; overflow:hidden; background:#0a0d170d}
     .thead,.row{
       display:grid; grid-template-columns: 140px 1fr 100px; gap:0; align-items:center;
       padding:12px 14px; border-bottom:1px solid var(--stroke);
     }
-    .thead{position:sticky; top:0; backdrop-filter:blur(10px); background:linear-gradient(180deg,#0b0f1d88,#0b0f1d22);}
-    .rows{max-height:56vh; overflow:auto;}
+    .thead{position:sticky; top:0; backdrop-filter:blur(10px); background:linear-gradient(180deg,#0b0f1d88,#0b0f1d22)}
+    .rows{max-height:56vh; overflow:auto}
     .row{animation:fadein .35s ease both}
     .row:nth-child(odd){background:#ffffff03}
-    @keyframes fadein{
-      from{opacity:0; transform:translateY(6px)}
-      to{opacity:1; transform:translateY(0)}
-    }
+    @keyframes fadein{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)}}
 
     .stk-ok{color:var(--ok); font-weight:600}
     .stk-0{color:var(--danger); font-weight:600}
 
     .wa-block{
-      display:none; /* toggled by tab */
-      border:1px solid var(--stroke); border-radius:12px; padding:12px; margin-top:10px;
+      display:none; border:1px solid var(--stroke); border-radius:12px; padding:12px; margin-top:10px;
       background:#0000000a; white-space:pre-wrap; max-height:56vh; overflow:auto; font-family:ui-monospace,Menlo,Consolas,monospace;
     }
 
@@ -195,7 +180,7 @@
           <div class="logo" aria-hidden="true">ZS</div>
           <div class="title">
             <h1>Zain Store <span style="color:var(--brand)">•</span> Live Stock XL Akrab</h1>
-            <p>Restok harian sekitar <b>15:00 WIB</b>. UI baru—lebih cepat, modern, dan siap copy!</p>
+            <p>Restok harian sekitar <b>15:00 WIB</b>. UI baru—lebih cepat, modern, & siap copy!</p>
           </div>
         </div>
 
@@ -208,17 +193,13 @@
             <span id="swReady" class="switch" role="switch" aria-checked="false"><i></i></span>
           </span>
 
-          <label class="search" for="q">
-            🔍 <input id="q" placeholder="Cari kode / nama…" autocomplete="off"/>
-          </label>
+          <label class="search" for="q">🔍 <input id="q" placeholder="Cari kode / nama…" autocomplete="off"/></label>
         </div>
       </div>
 
       <!-- BODY -->
       <div class="body">
-        <div class="meta" id="meta">
-          <span class="badgelite">Belum dimuat</span>
-        </div>
+        <div class="meta" id="meta"><span class="badgelite">Belum dimuat</span></div>
 
         <div class="tabbar" role="tablist" aria-label="Tampilan">
           <div id="tabList" class="tab active" role="tab" aria-selected="true">Daftar</div>
@@ -232,12 +213,7 @@
             <div role="columnheader">Nama Produk</div>
             <div role="columnheader" style="text-align:right">Stok</div>
           </div>
-          <div id="rows" class="rows" role="rowgroup">
-            <!-- skeleton awal -->
-            <div class="shimmer"></div>
-            <div class="shimmer" style="height:44px"></div>
-            <div class="shimmer" style="height:44px"></div>
-          </div>
+          <div id="rows" class="rows" role="rowgroup"></div>
         </div>
 
         <!-- WA TEXT VIEW -->
@@ -274,6 +250,7 @@
     let list = [];         // normalized array {sku,name,stock}
     let textBlock = "";    // WA-style text
     let filtered = [];     // view array
+    let lastFetch = 0;
 
     function showToast(msg){
       toast.textContent = msg;
@@ -285,6 +262,10 @@
       meta.innerHTML = loaded
         ? `<span class="dot"></span> <b>${count}</b> produk • dimuat ${new Date().toLocaleTimeString()}`
         : `<span class="badgelite">Belum dimuat</span>`;
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
     }
 
     function renderRows(){
@@ -318,13 +299,14 @@
       setMeta({count:list.length, loaded:true});
     }
 
-    function escapeHtml(s){
-      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    }
-
     async function fetchStok(){
-      // skeleton
-      rows.innerHTML = `<div class="shimmer"></div><div class="shimmer" style="height:44px"></div><div class="shimmer" style="height:44px"></div>`;
+      lastFetch = Date.now();
+      // tampilkan skeleton saat mulai fetch
+      rows.innerHTML = `
+        <div class="shimmer"></div>
+        <div class="shimmer" style="height:44px"></div>
+        <div class="shimmer" style="height:44px"></div>
+      `;
       setMeta({loaded:false});
 
       const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
@@ -334,6 +316,7 @@
         if(!r.ok){
           rows.innerHTML = `<div class="row"><div>ERR</div><div>Gagal memuat (${r.status})</div><div style="text-align:right">0</div></div>`;
           waText.textContent = await r.text();
+          showToast("Gagal memuat");
           return;
         }
         raw = await r.json();
@@ -341,11 +324,10 @@
         textBlock = raw.text || list.map(it=>`(${it.sku}) ${it.name} : ${it.stock}`).join("\n");
         waText.textContent = textBlock;
         renderRows();
-        // subtle success
         showToast("Stok dimuat ✅");
       }catch(e){
         rows.innerHTML = `<div class="row"><div>ERR</div><div>${escapeHtml(e.message || "Network error")}</div><div style="text-align:right">0</div></div>`;
-        showToast("Gagal memuat");
+        showToast("Network error / timeout");
       }
     }
 
@@ -371,8 +353,20 @@
       catch{ showToast("Gagal menyalin"); }
     };
 
-    // Default: tampilkan tab List dulu; tidak otomatis fetch agar sesuai permintaanmu
+    // Default tampilan tab
     activateTab("list");
+
+    // === AUTO-FETCH saat halaman siap ===
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fetchStok, { once: true });
+    } else {
+      fetchStok();
+    }
+
+    // === REFRESH RINGAN ketika tab kembali aktif (jika >60s) ===
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && Date.now() - lastFetch > 60000) fetchStok();
+    });
   </script>
 </body>
 </html>
