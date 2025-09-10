@@ -7,14 +7,14 @@
   <meta name="theme-color" content="#181a29"/>
 
   <style>
-    /* ====== GEN Z AESTHETIC (no inner scroll) ====== */
+    /* ====== GEN Z AESTHETIC (MINIMAL) ====== */
     :root{
       --bg:#0e111b; --card:#121628; --ink:#e9eef7; --muted:#9aa6bd; --stroke:#22263a;
-      --brand:#7c9cff; --brand-2:#b38cff; --ok:#66e3a1; --danger:#ff8a8a;
+      --brand:#7c9cff; --brand2:#b38cff; --ok:#66e3a1;
       --radius:18px; --shadow:0 20px 50px rgba(0,0,0,.35);
     }
     @media (prefers-color-scheme: light){
-      :root{ --bg:#eef1f7; --card:#ffffff; --ink:#0e1220; --muted:#51607a; --stroke:#e7eaf1; --brand:#4f6bff; --brand-2:#8f6bff; }
+      :root{ --bg:#eef1f7; --card:#ffffff; --ink:#0e1220; --muted:#51607a; --stroke:#e7eaf1; --brand:#4f6bff; --brand2:#8f6bff; }
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -30,89 +30,68 @@
     }
     @keyframes aurora{ 0%{background-position:0 0,0 0,0 0} 100%{background-position:20px -30px,-40px 10px,0 -20px} }
 
-    .shell{min-height:100%; display:grid; place-items:center; padding:28px}
+    .wrap{min-height:100%; display:grid; place-items:center; padding:28px}
     .card{
       width:min(980px,94vw);
       background:linear-gradient(180deg,#ffffff05,#00000010);
       border:1px solid var(--stroke); border-radius:var(--radius);
       box-shadow:var(--shadow); backdrop-filter:blur(10px);
-      overflow:visible; /* penting: biar tidak ada inner scroll */
     }
 
     /* Header */
-    .hero{padding:22px 22px 8px}
+    .hero{padding:22px 22px 0}
     .brand{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
     .logo{
       width:48px; height:48px; border-radius:12px;
-      background:conic-gradient(from 130deg,var(--brand),var(--brand-2),#46e6b8);
+      background:conic-gradient(from 130deg,var(--brand),var(--brand2),#46e6b8);
       box-shadow:0 10px 25px #0007; display:grid; place-items:center; color:#fff; font-weight:800;
       transform:translateZ(0); transition:transform .25s ease;
     }
     .logo:hover{ transform:rotate(-2deg) scale(1.04) }
     .title h1{margin:0; font-size:clamp(18px,2.2vw,24px)}
-    .title p{margin:.25rem 0 0; color:var(--muted); font-size:.95rem}
+    .title p{margin:.35rem 0 0; color:var(--muted); font-size:.95rem}
 
-    .actions{margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .actions{padding:16px 22px; display:flex; gap:10px; flex-wrap:wrap}
     .btn{
       border:none; border-radius:12px; padding:12px 16px; cursor:pointer; color:#fff;
-      background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
       box-shadow:0 10px 25px rgba(124,156,255,.35);
       transform:translateY(0); transition:transform .15s ease, filter .15s ease;
     }
     .btn:hover{ transform:translateY(-2px); filter:saturate(1.05) brightness(1.04) }
     .btn-ghost{ background:transparent; color:var(--ink); border:1px solid var(--stroke); box-shadow:none }
 
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      border:1px solid var(--stroke); border-radius:999px; padding:8px 10px; background:#00000014;
-    }
-    .switch{width:40px; height:24px; border-radius:999px; background:#ffffff22; position:relative; border:1px solid var(--stroke); cursor:pointer}
-    .switch i{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .18s ease}
-    .switch.active{background:#40e0a633}
-    .switch.active i{ left:18px }
+    /* Meta */
+    .meta{padding:0 22px 10px; color:var(--muted); font-size:.92rem}
+    .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); display:inline-block; margin-right:6px}
+    .badge{padding:6px 10px; border:1px dashed var(--stroke); border-radius:10px; background:#0000000a}
 
-    .search{display:flex; align-items:center; gap:8px; background:#00000012; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke)}
-    .search input{background:transparent; border:none; outline:none; color:var(--ink); width:200px}
-
-    /* Body */
-    .body{padding:12px 22px 22px}
-    .meta{display:flex; gap:12px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:.92rem; margin-bottom:10px}
-    .meta .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); display:inline-block}
-    .badgelite{padding:6px 10px; border:1px dashed var(--stroke); border-radius:10px; background:#0000000a}
-
-    /* WhatsApp-like text block (no max-height, no overflow) */
+    /* WhatsApp-like text block (no inner scroll) */
+    .body{padding:0 22px 18px}
     .wa{
       border:1px solid var(--stroke); border-radius:14px; padding:14px; background:#0a0f1b66;
       font-family:ui-monospace,Menlo,Consolas,monospace; white-space:pre-wrap; line-height:1.4;
       box-shadow:inset 0 0 0 1px #00000014;
-      /* tidak ada overflow/height → halaman yang scroll, bukan kotaknya */
     }
 
-    /* Shimmer lines saat fetching */
-    .skeleton .line{
-      height:14px; border-radius:6px; margin:6px 0; background:#0f1423; position:relative; overflow:hidden
-    }
-    .skeleton .line::after{
-      content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,#ffffff15,transparent);
-      animation:shine 1.2s infinite
-    }
+    /* Skeleton */
+    .skel .line{height:14px; border-radius:6px; margin:6px 0; background:#0f1423; position:relative; overflow:hidden}
+    .skel .line::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,#ffffff15,transparent); animation:shine 1.2s infinite}
     @keyframes shine{from{transform:translateX(-100%)} to{transform:translateX(100%)}}
 
-    .footer{padding:14px 22px; border-top:1px solid var(--stroke); display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; color:var(--muted); font-size:.9rem}
+    /* Footer */
+    .footer{padding:14px 22px; border-top:1px solid var(--stroke); display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; color:var(--muted); font-size:.9rem}
     .links{display:flex; gap:10px; flex-wrap:wrap}
-    .a{
-      color:#fff; text-decoration:none; background:linear-gradient(135deg,var(--brand),var(--brand-2));
-      padding:9px 12px; border-radius:10px; box-shadow:0 10px 20px rgba(140,120,255,.25);
-      transition:transform .15s ease;
-    }
+    .a{color:#fff; text-decoration:none; background:linear-gradient(135deg,var(--brand),var(--brand2)); padding:9px 12px; border-radius:10px; box-shadow:0 10px 20px rgba(140,120,255,.25); transition:transform .15s ease}
     .a:hover{ transform:translateY(-2px) }
 
+    /* Toast */
     .toast{position:fixed; left:50%; bottom:16px; transform:translateX(-50%) translateY(20px); background:#0b1222; color:#cfe3ff; padding:10px 14px; border:1px solid #213055; border-radius:10px; opacity:0; transition:all .25s ease; box-shadow:var(--shadow); z-index:50}
     .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="wrap">
     <div class="card" role="region" aria-label="Cek Stok Zain Store">
       <!-- Header -->
       <div class="hero">
@@ -123,32 +102,26 @@
             <p>Restok harian sekitar <b>15:00 WIB</b>. Tampilan teks ala WhatsApp—langsung siap salin!</p>
           </div>
         </div>
-
-        <div class="actions" aria-label="Aksi">
-          <button id="btnFetch" class="btn">🔎 Cek Stok</button>
-          <button id="btnCopy" class="btn btn-ghost" title="Salin semua teks">📋 Copy</button>
-
-          <span class="pill">
-            <span>Ready only</span>
-            <span id="swReady" class="switch" role="switch" aria-checked="false"><i></i></span>
-          </span>
-
-          <label class="search" for="q">🔍 <input id="q" placeholder="Cari kode / nama…" autocomplete="off"/></label>
-        </div>
       </div>
 
-      <!-- Body -->
-      <div class="body">
-        <div class="meta" id="meta"><span class="badgelite">Belum dimuat</span></div>
+      <!-- Actions -->
+      <div class="actions">
+        <button id="btnFetch" class="btn">🔎 Cek Stok</button>
+        <button id="btnCopy" class="btn btn-ghost" title="Salin semua teks">📋 Copy</button>
+      </div>
 
-        <!-- WhatsApp-style text (no inner scroll) -->
-        <div id="wa" class="wa">
-          <div id="skel" class="skeleton" aria-hidden="true" style="display:none">
+      <!-- Meta -->
+      <div class="meta" id="meta"><span class="badge">Belum dimuat</span></div>
+
+      <!-- Body (WA text, no inner scroll) -->
+      <div class="body">
+        <div class="wa">
+          <div id="skel" class="skel" aria-hidden="true" style="display:none">
             <div class="line" style="width:60%"></div>
             <div class="line" style="width:80%"></div>
-            <div class="line" style="width:70%"></div>
-            <div class="line" style="width:65%"></div>
-            <div class="line" style="width:75%"></div>
+            <div class="line" style="width:72%"></div>
+            <div class="line" style="width:76%"></div>
+            <div class="line" style="width:68%"></div>
           </div>
           <pre id="waText" style="margin:0; font:inherit; white-space:pre-wrap"></pre>
         </div>
@@ -156,7 +129,7 @@
 
       <!-- Footer -->
       <div class="footer">
-        <div>© <span id="year"></span> Zain Store • UI v2 (WA Text)</div>
+        <div>© <span id="year"></span> Zain Store • UI v2 (Minimal)</div>
         <div class="links">
           <a class="a" href="https://wa.me/6281252162402" target="_blank" rel="noopener" title="Chat Owner">
             👑 Chat Owner (0812-5216-2402)
@@ -175,14 +148,10 @@
     const $ = (id)=>document.getElementById(id);
     const waText = $("waText"), skel = $("skel"), meta = $("meta"),
           btn = $("btnFetch"), copyBtn = $("btnCopy"),
-          swReady = $("swReady"), q = $("q"), toast = $("toast"),
-          yearEl = $("year");
+          toast = $("toast"), yearEl = $("year");
 
     yearEl.textContent = new Date().getFullYear();
 
-    let raw = null;   // payload dari /api/stok
-    let list = [];    // [{sku,name,stock}]
-    let rawText = ""; // text dari API
     let lastFetch = 0;
 
     function showToast(msg){
@@ -191,40 +160,14 @@
       setTimeout(()=>toast.classList.remove("show"), 1500);
     }
 
-    function setMeta({count=0, loaded=false}={}){
-      meta.innerHTML = loaded
-        ? `<span class="dot"></span> <b>${count}</b> produk • dimuat ${new Date().toLocaleTimeString()}`
-        : `<span class="badgelite">Belum dimuat</span>`;
-    }
-
-    function buildText(){
-      const onlyReady = swReady.classList.contains("active");
-      const query = (q.value||"").trim().toLowerCase();
-
-      // Tanpa filter → pakai rawText agar persis seperti bot
-      if (!onlyReady && !query) {
-        waText.textContent = rawText || "";
-        return;
-      }
-
-      // Dengan filter → render dari list
-      const filtered = list.filter(it=>{
-        if (onlyReady && !(Number(it.stock)>0)) return false;
-        if (!query) return true;
-        return it.sku.toLowerCase().includes(query) || String(it.name||"").toLowerCase().includes(query);
-      });
-
-      const lines = filtered.map(it=>`(${it.sku}) ${it.name || it.sku} : ${it.stock}`);
-      waText.textContent = lines.join("\n");
+    function setMetaLoaded(count){
+      meta.innerHTML = `<span class="dot"></span> <b>${count}</b> produk • dimuat ${new Date().toLocaleTimeString()}`;
     }
 
     async function fetchStok(){
       lastFetch = Date.now();
-      // tampilkan skeleton
       skel.style.display = "block";
       waText.textContent = "";
-      setMeta({loaded:false});
-
       const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
       try{
         const r = await fetch("/api/stok", { signal: ctl.signal });
@@ -235,12 +178,12 @@
           showToast("Gagal memuat");
           return;
         }
-        raw = await r.json();
-        list = Array.isArray(raw.list) ? raw.list : [];
-        rawText = raw.text || (list.map(it=>`(${it.sku}) ${it.name || it.sku} : ${it.stock}`).join("\n"));
+        const j = await r.json();
+        const text = j.text
+          || (Array.isArray(j.list) ? j.list.map(it=>`(${it.sku}) ${it.name || it.sku} : ${it.stock}`).join("\n") : JSON.stringify(j,null,2));
         skel.style.display = "none";
-        setMeta({count:list.length, loaded:true});
-        buildText();
+        setMetaLoaded(Array.isArray(j.list) ? j.list.length : (text ? text.split("\n").length : 0));
+        waText.textContent = text;
         showToast("Stok dimuat ✅");
       }catch(e){
         skel.style.display = "none";
@@ -249,7 +192,7 @@
       }
     }
 
-    // Controls
+    // Actions
     btn.onclick = fetchStok;
     copyBtn.onclick = async()=>{
       const text = waText.textContent || "";
@@ -257,8 +200,6 @@
       try{ await navigator.clipboard.writeText(text); showToast("Tersalin ✨"); }
       catch{ showToast("Gagal menyalin"); }
     };
-    swReady.onclick = ()=>{ swReady.classList.toggle("active"); buildText(); };
-    q.addEventListener("input", ()=>buildText());
 
     // Auto-fetch saat halaman siap
     if (document.readyState === "loading") {
