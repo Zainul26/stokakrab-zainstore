@@ -1,3 +1,5 @@
 {
-  "cleanUrls": true
+  "rewrites": [
+    { "source": "/", "destination": "/cek-stok.html" }
+  ]
 }
