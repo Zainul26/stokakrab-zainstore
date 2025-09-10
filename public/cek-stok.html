@@ -3,87 +3,59 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cek Stok</title>
+  <title>Cek Stok XL Akrab</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#0f1115;color:#eaeef3;margin:0;padding:24px}
-    .card{max-width:720px;margin:auto;background:#151923;border:1px solid #232838;border-radius:14px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    input,button{padding:12px 14px;border-radius:10px;border:1px solid #2a3144;background:#0f1320;color:#eaeef3;outline:none}
-    input{flex:1;min-width:240px}
-    button{cursor:pointer}
-    .muted{opacity:.8;font-size:.9rem}
-    .result{margin-top:14px;white-space:pre-wrap;background:#0c101a;border:1px solid #1f2533;border-radius:10px;padding:12px}
-    .err{color:#ff7b7b}
-    .ok{color:#8df39c}
+    :root { --bg:#f2f4f8; --card:#fff; --ink:#0e1116; --muted:#556070; --primary:#2d6cdf }
+    @media (prefers-color-scheme: dark){
+      :root { --bg:#0f1115; --card:#151923; --ink:#e7ecf3; --muted:#94a3b8; --primary:#3b82f6 }
+    }
+    body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;margin:0}
+    .wrap{min-height:100dvh;display:grid;place-items:center;padding:24px}
+    .card{width:min(680px,92vw);background:var(--card);border-radius:16px;padding:22px;border:1px solid #00000022;box-shadow:0 10px 30px #00000018}
+    h2{margin:8px 0 14px 0}
+    .note{background:#fef3c7;border:1px solid #f59e0b55;color:#7c4a02;padding:10px;border-radius:10px;margin:10px 0}
+    .how{background:#c7f9ff;border:1px solid #22d3ee55;color:#034b58;padding:10px;border-radius:10px;margin:10px 0}
+    button{background:var(--primary);color:white;border:none;border-radius:10px;padding:12px 16px;cursor:pointer}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .out{margin-top:14px;background:#0c101a10;border:1px solid #00000022;border-radius:12px;padding:12px;max-height:60vh;overflow:auto;white-space:pre}
+    .muted{color:var(--muted);font-size:.92rem}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>🔎 Cek Stok</h2>
-    <p class="muted">Isi salah satu: <b>SKU</b> atau <b>No. Tujuan</b>. Klik Cek.</p>
-    <div class="row">
-      <input id="sku" placeholder="SKU (mis. PAKET-AKRAB-10GB)" />
-      <input id="number" placeholder="Nomor (opsional, mis. 08xxxx)" />
-      <button id="cek">Cek</button>
+  <div class="wrap">
+    <div class="card">
+      <h2>📦 Cek Stok XL Akrab</h2>
+      <div class="note">akrab bekasan, restok tiap hari jam 15.00 WIB</div>
+      <div class="how">Gunakan kode di bawah untuk transaksi di Bot WA/Telegram. Contoh: <b>BPAL3.0878787878</b></div>
+      <div class="row">
+        <button id="btn">🔎 Cek Stok</button>
+        <button id="copy" title="Salin hasil" style="background:#10b981">📋 Copy</button>
+        <span id="status" class="muted"></span>
+      </div>
+      <div id="out" class="out" hidden></div>
     </div>
-    <div id="status" class="muted" style="margin-top:10px;"></div>
-    <div id="out" class="result" hidden></div>
   </div>
 
   <script>
-    const btn = document.getElementById("cek");
-    const statusEl = document.getElementById("status");
-    const out = document.getElementById("out");
+    const $ = (id)=>document.getElementById(id);
+    const btn = $("btn"), copyBtn = $("copy"), out = $("out"), statusEl = $("status");
 
     async function cek() {
-      out.hidden = true;
-      out.textContent = "";
-      const sku = document.getElementById("sku").value.trim();
-      const number = document.getElementById("number").value.trim();
-
-      if (!sku && !number) {
-        statusEl.innerHTML = '<span class="err">Harus isi SKU atau Number.</span>';
-        return;
-      }
-
-      // rakit query
-      const params = new URLSearchParams();
-      if (sku) params.set("sku", sku);
-      if (number) params.set("number", number);
-
-      // timeout sisi browser
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 15000);
-
-      try {
-        statusEl.textContent = "Memeriksa stok…";
-        const r = await fetch(`/api/stok?${params.toString()}`, { signal: controller.signal });
-        clearTimeout(timer);
-
+      statusEl.textContent = "Memeriksa stok…";
+      out.hidden = true; out.textContent = "";
+      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
+      try{
+        const r = await fetch("/api/stok", { signal: ctl.signal });
+        clearTimeout(t);
         if (!r.ok) {
-          const errText = (await r.text()).slice(0, 400);
-          statusEl.innerHTML = `<span class="err">Gagal (${r.status}).</span>`;
-          out.hidden = false;
-          out.textContent = errText || "Terjadi kesalahan dari server.";
+          statusEl.textContent = `Gagal (${r.status})`;
+          out.hidden = false; out.textContent = (await r.text()).slice(0,800);
           return;
         }
-
         const j = await r.json();
-        statusEl.innerHTML = j.ok ? '<span class="ok">OK.</span>' : '<span class="err">Gagal.</span>';
-        out.hidden = false;
-        out.textContent = JSON.stringify(j, null, 2);
-      } catch (e) {
-        statusEl.innerHTML = `<span class="err">Network error / Timeout.</span>`;
-        out.hidden = false;
-        out.textContent = e && e.message ? e.message : "Failed to fetch";
+        statusEl.textContent = `OK • ${j.count} produk`;
+        out.hidden = false; out.textContent = j.text || JSON.stringify(j.list,null,2);
+      }catch(e){
+        statusEl.textContent = "Network error / Timeout";
+        out.hidden = false; out.textContent = e.message || "Failed to fetch";
       }
-    }
-
-    btn.addEventListener("click", cek);
-    // Enter submit
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") cek();
-    });
-  </script>
-</body>
-</html>
