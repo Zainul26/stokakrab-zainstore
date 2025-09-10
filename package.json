@@ -1,5 +1,6 @@
 {
-  "name": "zain-stok-akrab",
+  "name": "stokakrab-zainstore",
   "private": true,
-  "type": "module"
+  "type": "commonjs",
+  "engines": { "node": ">=18" }
 }
