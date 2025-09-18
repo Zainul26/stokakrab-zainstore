@@ -3,214 +3,129 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Zain Store • Cek Stok XL Akrab</title>
+  <title>Zain Store • Stock XL Akrab</title>
   <meta name="theme-color" content="#181a29"/>
 
   <style>
-    /* ====== GEN Z AESTHETIC (MINIMAL) ====== */
     :root{
       --bg:#0e111b; --card:#121628; --ink:#e9eef7; --muted:#9aa6bd; --stroke:#22263a;
       --brand:#7c9cff; --brand2:#b38cff; --ok:#66e3a1;
       --radius:18px; --shadow:0 20px 50px rgba(0,0,0,.35);
     }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#eef1f7; --card:#ffffff; --ink:#0e1220; --muted:#51607a; --stroke:#e7eaf1; --brand:#4f6bff; --brand2:#8f6bff; }
-    }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      background:var(--bg);
-      /* animated aurora */
-      --g1:radial-gradient(1000px 600px at -10% -20%, #4f6bff22, transparent 60%);
-      --g2:radial-gradient(900px 600px at 110% -10%, #8f6bff22, transparent 60%);
-      --g3:radial-gradient(700px 500px at 50% 120%, #3be4b322, transparent 60%);
-      background-image:var(--g1),var(--g2),var(--g3);
-      animation:aurora 16s ease-in-out infinite alternate;
-    }
-    @keyframes aurora{ 0%{background-position:0 0,0 0,0 0} 100%{background-position:20px -30px,-40px 10px,0 -20px} }
-
-    .wrap{min-height:100%; display:grid; place-items:center; padding:28px}
-    .card{
-      width:min(980px,94vw);
-      background:linear-gradient(180deg,#ffffff05,#00000010);
-      border:1px solid var(--stroke); border-radius:var(--radius);
-      box-shadow:var(--shadow); backdrop-filter:blur(10px);
-    }
-
-    /* Header */
+    body{margin:0;background:radial-gradient(60% 100% at 50% 0%,#1a2140,#0e111b);color:var(--ink);font:16px/1.5 system-ui,Segoe UI,Roboto,Arial}
+    .wrap{min-height:100%;display:grid;place-items:center;padding:28px}
+    .card{width:min(980px,94vw);background:linear-gradient(180deg,#ffffff08,#00000012);
+      border:1px solid var(--stroke);border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(10px)}
     .hero{padding:22px 22px 0}
-    .brand{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
-    .logo{
-      width:48px; height:48px; border-radius:12px;
-      background:conic-gradient(from 130deg,var(--brand),var(--brand2),#46e6b8);
-      box-shadow:0 10px 25px #0007; display:grid; place-items:center; color:#fff; font-weight:800;
-      transform:translateZ(0); transition:transform .25s ease;
-    }
-    .logo:hover{ transform:rotate(-2deg) scale(1.04) }
-    .title h1{margin:0; font-size:clamp(18px,2.2vw,24px)}
-    .title p{margin:.35rem 0 0; color:var(--muted); font-size:.95rem}
-
-    .actions{padding:16px 22px; display:flex; gap:10px; flex-wrap:wrap}
-    .btn{
-      border:none; border-radius:12px; padding:12px 16px; cursor:pointer; color:#fff;
-      background:linear-gradient(135deg,var(--brand),var(--brand2));
-      box-shadow:0 10px 25px rgba(124,156,255,.35);
-      transform:translateY(0); transition:transform .15s ease, filter .15s ease;
-    }
-    .btn:hover{ transform:translateY(-2px); filter:saturate(1.05) brightness(1.04) }
-    .btn-ghost{ background:transparent; color:var(--ink); border:1px solid var(--stroke); box-shadow:none }
-
-    /* Meta */
-    .meta{padding:0 22px 10px; color:var(--muted); font-size:.92rem}
-    .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); display:inline-block; margin-right:6px}
-    .badge{padding:6px 10px; border:1px dashed var(--stroke); border-radius:10px; background:#0000000a}
-
-    /* WhatsApp-like text block (no inner scroll) */
-    .body{padding:0 22px 18px}
-    .wa{
-      border:1px solid var(--stroke); border-radius:14px; padding:14px; background:#0a0f1b66;
-      font-family:ui-monospace,Menlo,Consolas,monospace; white-space:pre-wrap; line-height:1.4;
-      box-shadow:inset 0 0 0 1px #00000014;
-    }
-
-    /* Skeleton */
-    .skel .line{height:14px; border-radius:6px; margin:6px 0; background:#0f1423; position:relative; overflow:hidden}
-    .skel .line::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,#ffffff15,transparent); animation:shine 1.2s infinite}
-    @keyframes shine{from{transform:translateX(-100%)} to{transform:translateX(100%)}}
-
-    /* Footer */
-    .footer{padding:14px 22px; border-top:1px solid var(--stroke); display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; color:var(--muted); font-size:.9rem}
-    .links{display:flex; gap:10px; flex-wrap:wrap}
-    .a{color:#fff; text-decoration:none; background:linear-gradient(135deg,var(--brand),var(--brand2)); padding:9px 12px; border-radius:10px; box-shadow:0 10px 20px rgba(140,120,255,.25); transition:transform .15s ease}
-    .a:hover{ transform:translateY(-2px) }
-
-    /* Toast */
-    .toast{position:fixed; left:50%; bottom:16px; transform:translateX(-50%) translateY(20px); background:#0b1222; color:#cfe3ff; padding:10px 14px; border:1px solid #213055; border-radius:10px; opacity:0; transition:all .25s ease; box-shadow:var(--shadow); z-index:50}
-    .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+    .brand{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+    .logo{width:48px;height:48px;border-radius:12px;background:conic-gradient(from 130deg,var(--brand),var(--brand2),#46e6b8);box-shadow:0 10px 30px #00000055}
+    h1{margin:0;font-size:22px}
+    .sub{color:var(--muted)}
+    .actions{padding:16px 22px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--stroke);background:#1a1f34;color:#fff;cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--brand),var(--brand2))}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .content{padding:8px 22px 22px}
+    .meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+    .box{padding:14px;border-radius:12px;border:1px dashed var(--stroke);background:#0b0f1e}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#e7f1ff}
+    .footer{display:flex;gap:10px;justify-content:flex-end;padding:0 22px 22px}
+    .chip{font-size:13px;border-radius:12px;padding:10px 12px;background:#1a1f34;border:1px solid var(--stroke);color:#dce6ff;text-decoration:none}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card" role="region" aria-label="Cek Stok Zain Store">
-      <!-- Header -->
+    <div class="card">
       <div class="hero">
         <div class="brand">
-          <div class="logo" aria-hidden="true">ZS</div>
-          <div class="title">
-            <h1>Zain Store <span style="color:var(--brand)">•</span> Stock XL Akrab</h1>
-            <p>Produk harian restock sekitar <b>15:00 WIB</b>. Klik tombol di bawah untuk melakukan order/transaksi via Bot!</p>
+          <div class="logo"></div>
+          <div>
+            <h1>Zain Store • Stock XL Akrab</h1>
+            <div class="sub">Produk harian restock sekitar <b>15:00 WIB</b>. Klik tombol di bawah untuk cek stok.</div>
           </div>
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="actions">
-        <button id="btnFetch" class="btn">🔎 Cek Stok</button>
-        <button id="btnCopy" class="btn btn-ghost" title="Salin semua teks">📋 Copy</button>
+        <button id="btn" class="btn primary">🔎 Cek Stok</button>
+        <button id="copy" class="btn">📋 Copy</button>
       </div>
 
-      <!-- Meta -->
-      <div class="meta" id="meta"><span class="badge">Belum dimuat</span></div>
-
-      <!-- Body (WA text, no inner scroll) -->
-      <div class="body">
-        <div class="wa">
-          <div id="skel" class="skel" aria-hidden="true" style="display:none">
-            <div class="line" style="width:60%"></div>
-            <div class="line" style="width:80%"></div>
-            <div class="line" style="width:72%"></div>
-            <div class="line" style="width:76%"></div>
-            <div class="line" style="width:68%"></div>
-          </div>
-          <pre id="waText" style="margin:0; font:inherit; white-space:pre-wrap"></pre>
-        </div>
+      <div class="content">
+        <div id="meta" class="meta">Belum dimuat</div>
+        <div class="box"><pre id="out">—</pre></div>
       </div>
 
-      <!-- Footer -->
       <div class="footer">
-        <div>© <span id="year"></span> Zain Store • Cuan Maksimal</div>
-        <div class="links">
-          <a class="a" href="https://wa.me/6281252162402" target="_blank" rel="noopener" title="Chat Owner">
-            👑 Chat Owner (0812-5216-2402)
-          </a>
-          <a class="a" href="https://wa.me/6285147140814" target="_blank" rel="noopener" title="Transaksi via Bot">
-            🤖 Transaksi via Bot (0851-4714-0814)
-          </a>
-        </div>
+        <a class="chip" href="https://wa.me/6281252162402" target="_blank">👑 Chat Owner (0812-5216-2402)</a>
+        <a class="chip" href="https://wa.me/6285147140814" target="_blank">🤖 Transaksi via Bot (0851-4714-0814)</a>
       </div>
     </div>
   </div>
 
-  <div id="toast" class="toast" role="status"></div>
-
   <script>
-    const $ = (id)=>document.getElementById(id);
-    const waText = $("waText"), skel = $("skel"), meta = $("meta"),
-          btn = $("btnFetch"), copyBtn = $("btnCopy"),
-          toast = $("toast"), yearEl = $("year");
-
-    yearEl.textContent = new Date().getFullYear();
-
+    const btn = document.getElementById("btn");
+    const copyBtn = document.getElementById("copy");
+    const out = document.getElementById("out");
+    const meta = document.getElementById("meta");
     let lastFetch = 0;
 
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 1500);
+    function setStateLoading(){
+      btn.disabled = true;
+      meta.textContent = "Memuat…";
+      out.textContent = "";
     }
-
-    function setMetaLoaded(count){
-      meta.innerHTML = `<span class="dot"></span> <b>${count}</b> produk • dimuat ${new Date().toLocaleTimeString()}`;
-    }
+    function setStateDone(){ btn.disabled = false; lastFetch = Date.now(); }
 
     async function fetchStok(){
-      lastFetch = Date.now();
-      skel.style.display = "block";
-      waText.textContent = "";
-      const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), 15000);
       try{
-        const r = await fetch("/api/stok", { signal: ctl.signal });
-        clearTimeout(t);
-        if(!r.ok){
-          skel.style.display = "none";
-          waText.textContent = `Gagal memuat (${r.status}). Coba lagi.`;
-          showToast("Gagal memuat");
+        setStateLoading();
+        const r = await fetch("/api/stok?ts=" + Date.now(), { cache: "no-store" });
+        const status = r.status;
+        let j;
+        try { j = await r.json(); } catch { j = null; }
+
+        if (!r.ok || !j || j.ok === false){
+          const msg = (j && (j.error || j.message)) ? j.error || j.message : "HTTP " + status;
+          meta.textContent = "Gagal memuat (" + msg + "). Coba lagi.";
+          out.textContent = "";
           return;
         }
-        const j = await r.json();
-        const text = j.text
-          || (Array.isArray(j.list) ? j.list.map(it=>`(${it.sku}) ${it.name || it.sku} : ${it.stock}`).join("\n") : JSON.stringify(j,null,2));
-        skel.style.display = "none";
-        setMetaLoaded(Array.isArray(j.list) ? j.list.length : (text ? text.split("\n").length : 0));
-        waText.textContent = text;
-        showToast("Stok dimuat ✅");
+
+        let text = (j.text || "").trim();
+        if (!text) text = "Stok kosong / belum tersedia.\nSilakan cek lagi nanti.";
+
+        meta.textContent = j.count > 0 ? ("Ditemukan " + j.count + " item stok.") : "Stok kosong.";
+        out.textContent = text;
       }catch(e){
-        skel.style.display = "none";
-        waText.textContent = e.message || "Network error";
-        showToast("Network error / timeout");
+        meta.textContent = "Gagal memuat (" + (e && e.message || "error") + ").";
+        out.textContent = "";
+      }finally{
+        setStateDone();
       }
     }
 
-    // Actions
-    btn.onclick = fetchStok;
-    copyBtn.onclick = async()=>{
-      const text = waText.textContent || "";
-      if(!text){ showToast("Belum ada data"); return; }
-      try{ await navigator.clipboard.writeText(text); showToast("Tersalin ✨"); }
-      catch{ showToast("Gagal menyalin"); }
-    };
+    btn.addEventListener("click", fetchStok);
+    copyBtn.addEventListener("click", async ()=>{
+      try{
+        await navigator.clipboard.writeText(out.textContent || "");
+        copyBtn.textContent = "✅ Disalin";
+        setTimeout(()=>copyBtn.textContent="📋 Copy",1200);
+      }catch{ /* no-op */ }
+    });
 
-    // Auto-fetch saat halaman siap
+    // Auto load saat halaman siap
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", fetchStok, { once:true });
     } else {
       fetchStok();
     }
 
-    // Auto-refresh ringan ketika kembali ke tab (>60s)
+    // Auto refresh saat balik ke tab (≥60s)
     document.addEventListener("visibilitychange", ()=>{
-      if (!document.hidden && Date.now()-lastFetch>60000) fetchStok();
+      if(!document.hidden && Date.now()-lastFetch > 60000) fetchStok();
     });
   </script>
 </body>
