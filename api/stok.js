@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
 
   const UPSTREAM = process.env.UPSTREAM_URL
     // default: endpoint yang sama dipakai bot untuk akrab
-    || "https://panel.khfy-store.com/api/api-xl-v7/cek_stock_akrab";
+    || "https://panel.khfy-store.com/api_v3/cek_stock_akrab";
 
   const timeoutMs = Number(process.env.FETCH_TIMEOUT_MS || 15000);
   const controller = new AbortController();
